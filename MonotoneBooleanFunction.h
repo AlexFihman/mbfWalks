@@ -2,11 +2,16 @@
 
 #include "ShortList.h"
 
+struct Record {
+    uint64_t data[8];
+};
+
 class MonotoneBooleanFunction {
 private:
     int dimension; // Dimension of the boolean function
     int weight;
     bool* functionArray; // Array to store the boolean function
+    std::mt19937& rng; // Reference to Mersenne Twister random number generator
     ShortList min_cuts; // ShortList to store the minimum cuts
     bool checkMinCut(int index) const;
     void updateMinCuts();
@@ -23,6 +28,10 @@ public:
 
     void flip(int index);
 
+    void flipRandom();
+
+    void step();
+
     int getRandomMinCut() const;
 
     void printMinCuts() const;
@@ -30,4 +39,6 @@ public:
     int getWeight() const;
 
     int minCutSize() const;
+
+    void toRecord(Record& r);
 };

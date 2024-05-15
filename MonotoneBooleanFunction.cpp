@@ -1,7 +1,12 @@
 #include <iostream>
 #include "MonotoneBooleanFunction.h"
 
-MonotoneBooleanFunction::MonotoneBooleanFunction(int dim, std::mt19937& rng) : dimension(dim), min_cuts(rng), weight(0) {
+const int rsize = 8;
+const int size = 512;
+
+MonotoneBooleanFunction::MonotoneBooleanFunction(int dim, std::mt19937& rng) : 
+         dimension(dim), min_cuts(rng), rng(rng), weight(0) {
+
     functionArray = new bool[1 << dim](); // Initialize all values to false
     for (int i=0; i< (1 << dim); i++) functionArray[i] = false;
     updateMinCuts();
@@ -24,6 +29,19 @@ void MonotoneBooleanFunction::flip(int index) {
     functionArray[index] = !functionArray[index];
     weight += functionArray[index]? 1 : -1;
     updateMinCutsFast(index);
+}
+
+void MonotoneBooleanFunction::flipRandom() {
+    int index = getRandomMinCut();
+    functionArray[index] = !functionArray[index];
+    weight += functionArray[index]? 1 : -1;
+    updateMinCutsFast(index);
+}
+
+void MonotoneBooleanFunction::step() {
+    do {
+        flipRandom();
+    } while (rng() % minCutSize() != 0);
 }
 
 bool MonotoneBooleanFunction::checkMinCut(int index) const {
@@ -71,4 +89,15 @@ int MonotoneBooleanFunction::getWeight() const {
 
 int MonotoneBooleanFunction::minCutSize() const {
     return min_cuts.getSize();
+}
+
+void MonotoneBooleanFunction::toRecord(Record& r) {
+    for (int j = 0; j < rsize; j++) r.data[j] = 0;
+    for (int j = 0; j < size; j++) {
+        if (getFunctionValue(j)) {
+            int p = (size - j - 1) / 64;
+            int k = (size - j - 1) % 64;
+            r.data[p] ^= (1ULL << k);
+        }
+    }
 }
